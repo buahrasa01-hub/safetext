@@ -131,7 +131,11 @@ function getCloudModel(): GenerativeModel {
   return cloudModel;
 }
 
-export type AppCheckState = "active" | "skipped" | "not-configured";
+export type AppCheckState =
+  | "active-debug"
+  | "active-enterprise"
+  | "skipped"
+  | "not-configured";
 
 let appCheckState: AppCheckState = "not-configured";
 
@@ -181,7 +185,7 @@ export function initAppCheck(): void {
       }),
       isTokenAutoRefreshEnabled: true,
     });
-    appCheckState = "active";
+    appCheckState = "active-debug";
     return;
   }
   const enterpriseSiteKey = firebaseConfig.recaptchaEnterpriseSiteKey;
@@ -190,7 +194,7 @@ export function initAppCheck(): void {
       provider: new ReCaptchaEnterpriseProvider(enterpriseSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
-    appCheckState = "active";
+    appCheckState = "active-enterprise";
     return;
   }
   appCheckState = "skipped";

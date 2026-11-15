@@ -126,10 +126,12 @@ function modelStatusText(status: ModelStatus): string {
 
 function appCheckText(): string {
   const status = getAppCheckStatus();
-  if (status === "active")
+  if (status === "active-debug")
     return "App Check: active (debug token — local dev build).";
+  if (status === "active-enterprise")
+    return "App Check: active (reCAPTCHA Enterprise).";
   if (status === "skipped")
-    return "App Check: not required here — AI Logic is unenforced, calls work without attestation.";
+    return "App Check: not configured — cloud checks fail while AI Logic enforcement is on.";
   return "App Check: pending Firebase setup.";
 }
 
