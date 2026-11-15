@@ -125,9 +125,12 @@ function modelStatusText(status: ModelStatus): string {
 }
 
 function appCheckText(): string {
-  return getAppCheckStatus() === "pending"
-    ? "App Check: active (enforced by Firebase)."
-    : "App Check: pending Firebase setup.";
+  const status = getAppCheckStatus();
+  if (status === "active")
+    return "App Check: active (debug token — local dev build).";
+  if (status === "skipped")
+    return "App Check: not required here — AI Logic is unenforced, calls work without attestation.";
+  return "App Check: pending Firebase setup.";
 }
 
 async function loadSamples(): Promise<void> {

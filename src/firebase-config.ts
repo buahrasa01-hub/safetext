@@ -1,14 +1,13 @@
-// TODO: REAL FIREBASE WEB CONFIG — NOT AVAILABLE YET.
+// Firebase web app config for SafeText (project safetext-e13d1, Spark plan).
 //
-// This file holds the Firebase web app config for SafeText. The real values
-// come from the Firebase console (parent step: create the dedicated
-// SafeText Firebase project, AI Logic guided setup, Gemini Developer API
-// backend). Until then the config is empty and the AI layer refuses to
-// run, showing a clear "Firebase not configured yet" state in the app.
+// These values are public-by-design client config, NOT secrets — Firebase
+// AI Logic proxies the Gemini API key server-side. Never put a production
+// API key, a live Google Cloud project secret, or any credential in this
+// repo (Devpost Rules §6).
 //
-// The web config values (apiKey etc.) are public-by-design client config,
-// NOT secrets — but never put a production API key, a live Google Cloud
-// project secret, or any credential in this repo (Devpost Rules §6).
+// The App Check debug token is deliberately NOT in this file. It lives only
+// in a gitignored local .env.local as VITE_APPCHECK_DEBUG_TOKEN (local dev
+// only) and is never committed or baked into production builds.
 
 export interface FirebaseWebConfig {
   apiKey: string;
@@ -17,17 +16,15 @@ export interface FirebaseWebConfig {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
-  /** App Check debug token for the submission build (optional; set by the console step). */
-  appCheckDebugToken?: string;
 }
 
 export const firebaseConfig: FirebaseWebConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyC2yKPJgFgm-dcGWAHs2XAkSNKpSw64Ykw",
+  authDomain: "safetext-e13d1.firebaseapp.com",
+  projectId: "safetext-e13d1",
+  storageBucket: "safetext-e13d1.firebasestorage.app",
+  messagingSenderId: "175931254232",
+  appId: "1:175931254232:web:597a2d2d04c16ac3d67ead",
 };
 
 export function isFirebaseConfigured(): boolean {

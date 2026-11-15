@@ -1,5 +1,9 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
+  CustomProvider,
+  initializeAppCheck,
+} from "firebase/app-check";
+import {
   getAI,
   getGenerativeModel,
   GoogleAIBackend,
@@ -110,23 +114,59 @@ function getCloudModel(): GenerativeModel {
   return cloudModel;
 }
 
+export type AppCheckState = "active" | "skipped" | "not-configured";
+
+let appCheckState: AppCheckState = "not-configured";
+
 /**
- * App Check wiring — STUB until the Firebase console step lands.
+ * App Check wiring.
  *
- * App Check is REQUIRED by the hackathon rules; debug tokens are accepted
- * in submissions. Once the console step provides the debug token, this
- * function should set `self.FIREBASE_APPCHECK_DEBUG_TOKEN` and call
- * initializeAppCheck() with the project's provider, before any
- * generateContent() call. It is intentionally a no-op for now so the
- * scaffold builds and runs without a console project.
+ * The console shows Firebase AI Logic as "Basic — Unenforced", so cloud
+ * calls work even without attestation. App Check is still wired because
+ * the hackathon rules require it, and debug tokens are accepted:
+ *
+ * - Local dev: if VITE_APPCHECK_DEBUG_TOKEN is set (gitignored .env.local,
+ *   NEVER committed, NEVER baked into production builds), the token is
+ *   installed as `FIREBASE_APPCHECK_DEBUG_TOKEN` and initializeAppCheck()
+ *   activates the debug provider with it. The CustomProvider below is
+ *   never consulted while debug mode is on — the SDK exchanges the debug
+ *   token instead.
+ * - No token (production / GitHub Pages): App Check is skipped gracefully
+ *   and AI calls proceed, since enforcement is off for AI Logic.
+ *
+ * Must run before any generateContent() call.
  */
 export function initAppCheck(): void {
-  // TODO (console step): wire App Check with the safelisted debug token.
-  return;
+  if (!isFirebaseConfigured()) {
+    appCheckState = "not-configured";
+    return;
+  }
+  const debugToken =
+    typeof import.meta !== "undefined"
+      ? (import.meta.env?.VITE_APPCHECK_DEBUG_TOKEN as string | undefined)
+      : undefined;
+  if (!debugToken) {
+    appCheckState = "skipped";
+    return;
+  }
+  (
+    globalThis as unknown as Record<string, unknown>
+  ).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+  initializeAppCheck(getApp(), {
+    provider: new CustomProvider({
+      getToken: () =>
+        Promise.resolve({
+          token: "app-check-debug",
+          expireTimeMillis: Date.now() + 3_600_000,
+        }),
+    }),
+    isTokenAutoRefreshEnabled: true,
+  });
+  appCheckState = "active";
 }
 
-export function getAppCheckStatus(): "pending" | "not-configured" {
-  return isFirebaseConfigured() ? "pending" : "not-configured";
+export function getAppCheckStatus(): AppCheckState {
+  return appCheckState;
 }
 
 /**
