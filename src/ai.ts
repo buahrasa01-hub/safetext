@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   CustomProvider,
   initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
 } from "firebase/app-check";
 import {
   getAI,
@@ -137,9 +138,9 @@ let appCheckState: AppCheckState = "not-configured";
 /**
  * App Check wiring.
  *
- * The console shows Firebase AI Logic as "Basic — Unenforced", so cloud
- * calls work even without attestation. App Check is still wired because
- * the hackathon rules require it, and debug tokens are accepted:
+ * Firebase AI Logic on safetext-2 is "Basic — Enforced", so cloud calls
+ * are REJECTED with 401 unless a valid App Check token is attached. Two
+ * providers, in priority order:
  *
  * - Local dev: if VITE_APPCHECK_DEBUG_TOKEN is set (gitignored .env.local,
  *   NEVER committed, NEVER baked into production builds), the token is
@@ -147,8 +148,13 @@ let appCheckState: AppCheckState = "not-configured";
  *   activates the debug provider with it. The CustomProvider below is
  *   never consulted while debug mode is on — the SDK exchanges the debug
  *   token instead.
- * - No token (production / GitHub Pages): App Check is skipped gracefully
- *   and AI calls proceed, since enforcement is off for AI Logic.
+ * - Production (GitHub Pages): reCAPTCHA Enterprise (Fraud Defense),
+ *   registered 2026-11-15 for safetext-web-2; its public site key lives in
+ *   firebase-config.ts. reCAPTCHA v3 Classic is deprecated and cannot be
+ *   registered — Enterprise is its official replacement. The SDK loads the
+ *   Enterprise script and mints a token per session automatically.
+ * - Neither configured: App Check is skipped gracefully and AI calls will
+ *   fail with 401 while enforcement is on (do not ship in that state).
  *
  * Must run before any generateContent() call.
  */
@@ -161,24 +167,33 @@ export function initAppCheck(): void {
     typeof import.meta !== "undefined"
       ? (import.meta.env?.VITE_APPCHECK_DEBUG_TOKEN as string | undefined)
       : undefined;
-  if (!debugToken) {
-    appCheckState = "skipped";
+  if (debugToken) {
+    (
+      globalThis as unknown as Record<string, unknown>
+    ).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+    initializeAppCheck(getApp(), {
+      provider: new CustomProvider({
+        getToken: () =>
+          Promise.resolve({
+            token: "app-check-debug",
+            expireTimeMillis: Date.now() + 3_600_000,
+          }),
+      }),
+      isTokenAutoRefreshEnabled: true,
+    });
+    appCheckState = "active";
     return;
   }
-  (
-    globalThis as unknown as Record<string, unknown>
-  ).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
-  initializeAppCheck(getApp(), {
-    provider: new CustomProvider({
-      getToken: () =>
-        Promise.resolve({
-          token: "app-check-debug",
-          expireTimeMillis: Date.now() + 3_600_000,
-        }),
-    }),
-    isTokenAutoRefreshEnabled: true,
-  });
-  appCheckState = "active";
+  const enterpriseSiteKey = firebaseConfig.recaptchaEnterpriseSiteKey;
+  if (enterpriseSiteKey) {
+    initializeAppCheck(getApp(), {
+      provider: new ReCaptchaEnterpriseProvider(enterpriseSiteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+    appCheckState = "active";
+    return;
+  }
+  appCheckState = "skipped";
 }
 
 export function getAppCheckStatus(): AppCheckState {

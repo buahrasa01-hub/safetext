@@ -23,6 +23,13 @@ export interface FirebaseWebConfig {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  /**
+   * reCAPTCHA Enterprise (Fraud Defense) site key for App Check attestation
+   * in production. Public by design — site keys are meant to be embedded in
+   * client code (the SECRET key is never here). Registered 2026-11-15 for
+   * safetext-web-2, domains buahrasa01-hub.github.io + localhost.
+   */
+  recaptchaEnterpriseSiteKey: string;
 }
 
 export const firebaseConfig: FirebaseWebConfig = {
@@ -32,6 +39,7 @@ export const firebaseConfig: FirebaseWebConfig = {
   storageBucket: "safetext-2.firebasestorage.app",
   messagingSenderId: "132534852478",
   appId: "1:132534852478:web:a22ce364f4be8554cf312f",
+  recaptchaEnterpriseSiteKey: "6LewyCAuAAAAAH_AexpFKPDoTXK9QC6rtSG8OXNG",
 };
 
 export function isFirebaseConfigured(): boolean {
