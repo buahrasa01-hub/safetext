@@ -90,6 +90,20 @@ function getApp(): FirebaseApp {
 }
 
 /**
+ * Cloud model for both the hybrid fallback and the cloud-only path.
+ *
+ * The firebase/ai v12 SDK ignores a top-level `model` when a hybrid
+ * mode is set — the model must go in `inCloudParams` (proven by reading
+ * the installed SDK: getGenerativeModel() falls back to
+ * DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.5-flash-lite' when
+ * inCloudParams is absent). That model is retired for new users: the
+ * Firebase console playground on this project (safetext-e13d1) rejects
+ * gemini-2.5-flash-lite and accepts gemini-3.5-flash-lite, so this is
+ * the model that must be named explicitly.
+ */
+const CLOUD_MODEL = "gemini-3.5-flash-lite";
+
+/**
  * Primary model: PREFER_ON_DEVICE — runs on Gemini Nano when available,
  * falls back to cloud otherwise. This is the hybrid-inference core.
  */
@@ -98,6 +112,7 @@ function getDeviceModel(): GenerativeModel {
     const ai = getAI(getApp(), { backend: new GoogleAIBackend() });
     deviceModel = getGenerativeModel(ai, {
       mode: InferenceMode.PREFER_ON_DEVICE,
+      inCloudParams: { model: CLOUD_MODEL },
     });
   }
   return deviceModel;
@@ -109,6 +124,7 @@ function getCloudModel(): GenerativeModel {
     const ai = getAI(getApp(), { backend: new GoogleAIBackend() });
     cloudModel = getGenerativeModel(ai, {
       mode: InferenceMode.PREFER_IN_CLOUD,
+      inCloudParams: { model: CLOUD_MODEL },
     });
   }
   return cloudModel;

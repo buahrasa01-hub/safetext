@@ -1,4 +1,11 @@
-// Firebase web app config for SafeText (project safetext-e13d1, Spark plan).
+// Firebase web app config for SafeText (project safetext-2, Spark plan).
+//
+// NOTE 2026-11-15 ~17:58 WIB: the first project (safetext-e13d1) had a broken
+// AI Logic setup — its SDK calls failed with "genai config not found" and the
+// console showed NO Get started workflow. A clean project (safetext-2) DID
+// offer the guided workflow; the Gemini Developer API backend was enabled
+// through it (App Check auto-enforced for AI Logic). safetext-e13d1 is
+// abandoned; this file now points at safetext-2.
 //
 // These values are public-by-design client config, NOT secrets — Firebase
 // AI Logic proxies the Gemini API key server-side. Never put a production
@@ -19,12 +26,12 @@ export interface FirebaseWebConfig {
 }
 
 export const firebaseConfig: FirebaseWebConfig = {
-  apiKey: "AIzaSyC2yKPJgFgm-dcGWAHs2XAkSNKpSw64Ykw",
-  authDomain: "safetext-e13d1.firebaseapp.com",
-  projectId: "safetext-e13d1",
-  storageBucket: "safetext-e13d1.firebasestorage.app",
-  messagingSenderId: "175931254232",
-  appId: "1:175931254232:web:597a2d2d04c16ac3d67ead",
+  apiKey: "AIzaSyCl5SIxXO1-4DWfSlltnQ-x49VqLxjl1Gc",
+  authDomain: "safetext-2.firebaseapp.com",
+  projectId: "safetext-2",
+  storageBucket: "safetext-2.firebasestorage.app",
+  messagingSenderId: "132534852478",
+  appId: "1:132534852478:web:a22ce364f4be8554cf312f",
 };
 
 export function isFirebaseConfigured(): boolean {
